@@ -1,4 +1,6 @@
 import random
+from stack import Stack
+from queue import Queue
 
 class User:
     def __init__(self, name):
@@ -6,6 +8,9 @@ class User:
 
 class SocialGraph:
     def __init__(self):
+        self.reset()
+
+    def reset(self):               # This can free up the constructor to do other things.
         self.last_id = 0
         self.users = {}
         self.friendships = {}
@@ -15,12 +20,16 @@ class SocialGraph:
         Creates a bi-directional friendship
         """
         if user_id == friend_id:
-            print("WARNING: You cannot be friends with yourself")
+            # print("WARNING: You cannot be friends with yourself")
+            return False
         elif friend_id in self.friendships[user_id] or user_id in self.friendships[friend_id]:
-            print("WARNING: Friendship already exists")
+            # print("WARNING: Friendship already exists")
+            return False
         else:
             self.friendships[user_id].add(friend_id)
             self.friendships[friend_id].add(user_id)
+
+        return True # Success
 
     def add_user(self, name):
         """
@@ -39,9 +48,7 @@ class SocialGraph:
         The number of users must be greater than the average number of friendships.
         """
         # Reset graph
-        self.last_id = 0
-        self.users = {}
-        self.friendships = {}
+        self.reset()
         # !!!! IMPLEMENT ME
 
         # Add users
@@ -69,6 +76,28 @@ class SocialGraph:
             user_id, friend_id = friendship
             self.add_friendship(user_id, friend_id)
             
+    def populate_graph_2(self, num_users, avg_friendships):
+        # Reset graph
+        self.reset()
+
+        # Add Users
+        for users in range(num_users):
+            self.add_user(f"User {users + 1}")
+
+        # Create friendships
+        target_friendships = num_users * avg_friendships
+        total_friendships = 0
+        collisions = 0
+
+        while total_friendships < target_friendships:
+            user_id = random.randint(1, self.last_id)
+            friend_id = random.randint(1, self.last_id)
+
+            if self.add_friendship(user_id, friend_id):
+                total_friendships += 2
+            else:
+                collisions += 1
+        print(f"Collisions: {collisions}")
 
     def get_all_social_paths(self, user_id):
         """
@@ -77,14 +106,72 @@ class SocialGraph:
         extended network with the shortest friendship path between them.
         The key is the friend's ID and the value is the path.
         """
-        visited = {}  # Note that this is a dictionary, not a set
-        user_id = str(self.users)
-        friends = str(self.friendships)
+        # BFS Solution
+        queue = Queue()
+        visited = {}
+        queue.enqueue([user_id])
 
-        visited[user_id] = friends
+        while queue.size() > 0:
+            path = queue.dequeue()
 
-        return visited.keys()
+            last_id = path[-1]
 
+            if last_id not in visited:
+                visited[last_id] = path
+
+                for neighbor in self.friendships[last_id]:
+                    path_copy = list(path)
+                    path_copy.append(neighbor)
+                    queue.enqueue(path_copy)
+
+        return visited
+
+        # DFS Solution
+        # stack = Stack()
+        # visited = {}
+        # stack.push([user_id])
+
+        # while stack.size() > 0:
+        #     path = stack.pop()
+
+        #     last_id = path[-1]
+
+        #     if last_id not in visited:
+        #         visited[last_id] = path
+
+        #         for neighbor in self.friendships[last_id]:
+        #             path_copy = list(path)
+        #             path_copy.append(neighbor)
+        #             stack.push(path_copy)
+
+        # return visited
+
+        # DFS Solution
+        # Create a stack
+
+        # # Create Dictionary
+
+        # # Push path to the user_id to find extended network along with shortest friendship path
+
+        # # While stack is not empty
+
+        #     # Pop the first path
+
+        #     # Grab that last user from the path
+
+        #     # Check if the user has been visited
+
+        #         # If it has set visited key to the last_user and its value the path.
+
+        #         # Add path to its network on top of the stack
+
+        #             # Make a copy of the path
+
+        #             # Append the friend
+
+        #             # Push the new path
+
+        # return visited
 
 if __name__ == '__main__':
     sg = SocialGraph()
